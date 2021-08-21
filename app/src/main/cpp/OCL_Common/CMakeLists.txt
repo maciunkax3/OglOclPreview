@@ -1,0 +1,14 @@
+set(SOURCE_FILES 
+    ${SOURCE_FILES}
+        ${CMAKE_CURRENT_SOURCE_DIR}/OCL_Init.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/OCL_Init.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Buffer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Buffer.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Context.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Context.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Queue.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Queue.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/Kernel.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Kernel.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/convert_to_rgb_image.h
+    PARENT_SCOPE)
