@@ -22,6 +22,29 @@ namespace OCL{
             return;
         }
         context = std::make_unique<Context>(cpPlatform, device_id);
+        err = clGetDeviceInfo(device_id, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(numComputeUnits), &numComputeUnits, nullptr);
+        LOGI("ref of clGetDeviceInfo:%d\n",err);
+        if(err != 0){
+            status = -1;
+            return;
+        }
+        err = clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(maxWG), &maxWG, nullptr);
+        LOGI("ref of clGetDeviceInfo:%d\n",err);
+        if(err != 0){
+            status = -1;
+            return;
+        }
+        size_t extSize;
+        err = clGetDeviceInfo(device_id, CL_DEVICE_EXTENSIONS, 0, nullptr, &extSize);
+        auto extArray = std::make_unique<char[]>(extSize);
+        err = clGetDeviceInfo(device_id, CL_DEVICE_EXTENSIONS, extSize, extArray.get(), nullptr);
+        LOGI("ref of clGetDeviceInfo:%d\n",err);
+        if(err != 0){
+            status = -1;
+            return;
+        }
+        std::string extensionsString(extArray.get());
+        supportDP = extensionsString.find("cl_khr_fp64") != std::string::npos;
     }
 
     uint64_t Runtime::getKernelExecutionTime(cl_event event) {

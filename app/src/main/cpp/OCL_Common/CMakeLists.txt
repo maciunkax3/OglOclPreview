@@ -10,5 +10,5 @@ set(SOURCE_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/Queue.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Kernel.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Kernel.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/convert_to_rgb_image.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/kernels.h
     PARENT_SCOPE)

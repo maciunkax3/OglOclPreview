@@ -7,14 +7,17 @@ cmake_minimum_required(VERSION 3.10.2)
 
 # Declares and names the project.
 
-project("oclbenchark")
+project("Template")
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
-set(SOURCE_FILES native-lib.cpp)
+set(SOURCE_FILES
+        native-lib.cpp
+        OclConversion.cpp
+        OclConversion.h)
 # Build stub
 add_subdirectory(libopencl-stub)
 add_subdirectory(OCL_Common)
@@ -37,27 +40,6 @@ add_library( # Sets the name of the library.
 
         # Provides a relative path to your source file(s).
         ${CMAKE_CURRENT_SOURCE_DIR}/setEnvLib.cpp)
-
-find_library( # Sets the name of the path variable.
-        GLESv2-lib
-
-        # Specifies the name of the NDK library that
-        # you want CMake to locate.
-        GLESv2 )
-
-add_library( # Sets the name of the library.
-        NativeOGL
-
-        # Sets the library as a shared library.
-        SHARED
-
-        # Provides a relative path to your source file(s).
-        ${CMAKE_CURRENT_SOURCE_DIR}/nativeOGLLib.cpp)
-
-target_link_libraries(NativeOGL
-        ${GLESv2-lib}
-        ${log-lib}
-        log)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

@@ -12,5 +12,8 @@ namespace OCL{
         cl_platform_id cpPlatform;
         cl_device_id device_id;
         std::unique_ptr<Context> context;
+        size_t maxWG;
+        uint32_t numComputeUnits;
+        bool supportDP = false;
     };
 }
