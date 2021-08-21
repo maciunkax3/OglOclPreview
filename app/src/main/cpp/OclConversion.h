@@ -8,8 +8,8 @@
 #include <jni.h>
 class OclConversion {
 public:
-    OclConversion();
-    void initialize(size_t sizeSrc, size_t sizeDst, int width, int height);
+    OclConversion(jint texture_id, jlong dis, jlong ctx);
+    void initialize(size_t sizeSrc, int width, int height);
     bool initialized = false;
     std::unique_ptr<OCL::Kernel> kernel;
     jbyte *dst;
@@ -18,5 +18,6 @@ public:
     std::unique_ptr<OCL::Buffer> srcBuffer;
     std::unique_ptr<OCL::Queue> queue;
     std::unique_ptr<OCL::Runtime> runtime;
+    cl_mem imageObj = nullptr;
 
 };

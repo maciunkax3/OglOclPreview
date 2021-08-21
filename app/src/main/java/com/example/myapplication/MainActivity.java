@@ -33,7 +33,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceTexture.On
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initOCL();
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         glSurfaceView = new MyGLSurfaceView(this);
         renderer = glSurfaceView.getRenderer();
@@ -46,7 +45,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceTexture.On
         mainSurface = new SurfaceTexture(mainTexId);
         mainSurface.setOnFrameAvailableListener(this);
         renderer.setSurface(mainSurface);
-        //mainTexture = mainTexId;
 
         Camera.PreviewCallback callback = new Camera.PreviewCallback() {
             @Override
@@ -56,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceTexture.On
                 int mWidth = mSize.width;
                 int mHeight = mSize.height;
                 //yuv2rgb(texture_data, data, mWidth, mHeight);
-                convertToRGBOCL(texture_data, data, mWidth, mHeight);
+                convertToRGBOCL(data, mWidth, mHeight);
                 onFrameAvailable(mainSurface);
             }
         };
@@ -128,9 +126,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceTexture.On
         }
     }
 
-    public static native void convertToRGBOCL(byte[] rgb, byte[] yuv, int width, int height);
+    public static native void convertToRGBOCL(byte[] yuv, int width, int height);
 
-    public static native void initOCL();
+    public static native void initOCL(int textureId, long displayHandle, long contextHandle);
 
     public static native void closeOCL();
 }

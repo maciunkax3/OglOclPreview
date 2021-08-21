@@ -39,6 +39,9 @@ public class MyGL20Renderer implements GLSurfaceView.Renderer {
         long time = System.currentTimeMillis();
         texture_data = new byte[size.x*size.y * 4];
         textureRGB = createTextureRGB();
+        long displayHandle = EGL14.eglGetCurrentDisplay().getNativeHandle();
+        long contextHandle = EGL14.eglGetCurrentContext().getNativeHandle();
+        delegate.initOCL(textureRGB, displayHandle, contextHandle);
         try {
             delegate.startCamera(texture_data, textureRGB);
         } catch (IOException e) {
@@ -73,7 +76,7 @@ public class MyGL20Renderer implements GLSurfaceView.Renderer {
         float[] mtx = new float[16];
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
         surface.updateTexImage();
-        updateTexture();
+        //updateTexture();
         surface.getTransformMatrix(mtx);
         counter.logFrame();
         mDirectVideo.draw();
