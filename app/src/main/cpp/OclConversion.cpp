@@ -89,6 +89,41 @@ __kernel void convertNV21ToRGB(__global char *rgb, __global char *yuv, int width
 
 }
 )===";
+const char *rgbMax = R"===(
+__kernel void imageRgbMax(__write_only image2d_t dst ,__read_only image2d_t src){
+    int gidX = get_global_id(0);
+    int gidY = get_global_id(1);
+    const int2 coord = (int2)(gidX, gidY);
+    const float4 pixel = read_imagef(src, coord);
+    float max = pixel.x;
+    if(max < pixel.y){
+        pixel.x = 0;
+        max = pixel.y;
+        if(max < pixel.z){
+            pixel.y = 0.0;
+            write_imagef(dst, coord, pixel);
+            return;
+        }
+    } else if(max < pixel.z){
+        pixel.y = 0.0;
+        pixel.x = 0.0;
+    } else {
+        pixel.y = 0.0;
+        pixel.z = 0.0;
+    }
+    write_imagef(dst, coord, pixel);
+}
+)===";
+const char *blackWhite = R"===(
+__kernel void blackWhite(__write_only image2d_t dst ,__read_only image2d_t src){
+    int gidX = get_global_id(0);
+    int gidY = get_global_id(1);
+    const int2 coord = (int2)(gidX, gidY);
+    const float4 pixel = read_imagef(src, coord);
+    float value = (pixel.x + pixel.y + pixel.z) / 3;
+    write_imagef(dst, coord, (float4)(value, value, value, 1.0));
+}
+)===";
 
 OclConversion::OclConversion(jint texture_id, jlong dis, jlong ctx) {
     int status = 0;
@@ -99,17 +134,57 @@ OclConversion::OclConversion(jint texture_id, jlong dis, jlong ctx) {
              CL_CONTEXT_PLATFORM, 0,
              0};
     runtime->context.reset(new OCL::Context(runtime->cpPlatform, runtime->device_id, props));
-    imageObj = clCreateFromGLTexture(	runtime->context->context,
-                                         CL_MEM_WRITE_ONLY,
-                                         GL_TEXTURE_2D,
-                                         0,
-                                         texture_id,
-                                         &status);
+    imageObj = clCreateFromGLTexture(runtime->context->context,
+                                     CL_MEM_READ_WRITE,
+                                     GL_TEXTURE_2D,
+                                     0,
+                                     texture_id,
+                                     &status);
     LOGI("Image From Texture: %d", status);
     queue = std::make_unique<OCL::Queue>(runtime.get());
     kernel = std::make_unique<OCL::Kernel>(runtime->context.get(), convertNV21ToRGBImage,
                                            "convertNV21ToRGBImage",
                                            nullptr);
+    kernelGrayScale = std::make_unique<OCL::Kernel>(runtime->context.get(), blackWhite,
+                                                                                               "blackWhite",
+                                                                                               nullptr);
+    kernelMaxRgb = std::make_unique<OCL::Kernel>(runtime->context.get(), rgbMax,
+                                           "imageRgbMax",
+                                          nullptr);
+    size_t width = 0;
+    size_t height = 0;
+    clGetImageInfo(
+            imageObj,
+            CL_IMAGE_WIDTH,
+            sizeof(size_t),
+            &width,
+            nullptr);
+    clGetImageInfo(
+            imageObj,
+            CL_IMAGE_HEIGHT,
+            sizeof(size_t),
+            &height,
+            nullptr);
+    // Create OpenCL image
+    cl_image_format clImageFormat;
+    clImageFormat.image_channel_order = CL_RGBA;
+    clImageFormat.image_channel_data_type = CL_UNORM_INT8;
+
+    cl_int errNum;
+    cl_mem clImage;
+
+    // New in OpenCL 1.2, need to create image descriptor.
+    cl_image_desc clImageDesc;
+    clImageDesc.image_type = CL_MEM_OBJECT_IMAGE2D;
+    clImageDesc.image_width = width;
+    clImageDesc.image_height = height;
+    clImageDesc.image_row_pitch = 0;
+    clImageDesc.image_slice_pitch = 0;
+    clImageDesc.num_mip_levels = 0;
+    clImageDesc.num_samples = 0;
+    clImageDesc.buffer = NULL;
+
+    imageTmp = clCreateImage(runtime->context->context, CL_MEM_READ_WRITE,&clImageFormat, &clImageDesc, nullptr, &status);
 }
 
 void OclConversion::initialize(size_t sizeSrc, int width, int height) {
@@ -119,9 +194,25 @@ void OclConversion::initialize(size_t sizeSrc, int width, int height) {
     kernel->setArg<cl_mem>(1, &srcBuffer->memObj);
     kernel->setArg<cl_int>(2, &width);
     kernel->setArg<cl_int>(3, &height);
+    kernelGrayScale->setArg<cl_mem>(0, &imageObj);
+    kernelGrayScale->setArg<cl_mem>(1, &imageTmp);
+    kernelMaxRgb->setArg<cl_mem>(0, &imageObj);
+    kernelMaxRgb->setArg<cl_mem>(1, &imageTmp);
     kernel->gws[0] = width;
     kernel->gws[1] = height;
     kernel->lws[0] = runtime->maxWG;
     kernel->dims = 2;
+
+
+    kernelGrayScale->gws[0] = width;
+    kernelGrayScale->gws[1] = height;
+    kernelGrayScale->lws[0] = runtime->maxWG;
+    kernelGrayScale->dims = 2;
+
+
+    kernelMaxRgb->gws[0] = width;
+    kernelMaxRgb->gws[1] = height;
+    kernelMaxRgb->lws[0] = runtime->maxWG;
+    kernelMaxRgb->dims = 2;
     initialized = true;
 }

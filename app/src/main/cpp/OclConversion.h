@@ -12,6 +12,8 @@ public:
     void initialize(size_t sizeSrc, int width, int height);
     bool initialized = false;
     std::unique_ptr<OCL::Kernel> kernel;
+    std::unique_ptr<OCL::Kernel> kernelGrayScale;
+    std::unique_ptr<OCL::Kernel> kernelMaxRgb;
     jbyte *dst;
     jbyte *src;
     std::unique_ptr<OCL::Buffer> dstBuffer;
@@ -19,5 +21,6 @@ public:
     std::unique_ptr<OCL::Queue> queue;
     std::unique_ptr<OCL::Runtime> runtime;
     cl_mem imageObj = nullptr;
+    cl_mem imageTmp = nullptr;
 
 };

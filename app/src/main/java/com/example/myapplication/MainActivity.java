@@ -8,6 +8,7 @@ import android.hardware.Camera;
 import android.opengl.EGL14;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 
 import com.example.myapplication.databinding.ActivityMainBinding;
 
@@ -26,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceTexture.On
     private static int a = 0;
     private int dummyTexture;
     private int mainTexture;
+    private int clickFilter = 0;
     byte[] texture_data;
     MyGL20Renderer renderer;
     private ActivityMainBinding binding;
@@ -37,6 +39,13 @@ public class MainActivity extends AppCompatActivity implements SurfaceTexture.On
         glSurfaceView = new MyGLSurfaceView(this);
         renderer = glSurfaceView.getRenderer();
         setContentView(glSurfaceView);
+        glSurfaceView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clickFilter++;
+                clickFilter = (clickFilter) % 3;
+            }
+        });
     }
 
     public void startCamera(byte[] tex_data, int mainTexId) throws IOException {
@@ -54,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceTexture.On
                 int mWidth = mSize.width;
                 int mHeight = mSize.height;
                 //yuv2rgb(texture_data, data, mWidth, mHeight);
-                convertToRGBOCL(data, mWidth, mHeight);
+                convertToRGBOCL(data, mWidth, mHeight, clickFilter);
                 onFrameAvailable(mainSurface);
             }
         };
@@ -126,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceTexture.On
         }
     }
 
-    public static native void convertToRGBOCL(byte[] yuv, int width, int height);
+    public static native void convertToRGBOCL(byte[] yuv, int width, int height, int filter);
 
     public static native void initOCL(int textureId, long displayHandle, long contextHandle);
 

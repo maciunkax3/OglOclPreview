@@ -25,23 +25,24 @@ __kernel void hello_opencl(__global char *dst){
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_myapplication_MainActivity_closeOCL(JNIEnv *env, jobject thiz) {
-    if(oclConv != nullptr){
+    if (oclConv != nullptr) {
         delete oclConv;
     }
 }extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_myapplication_MainActivity_initOCL(JNIEnv *env, jclass clazz, jint texture_id,
                                                     jlong display_handle, jlong context_handle) {
-    if(oclConv == nullptr){
+    if (oclConv == nullptr) {
         oclConv = new OclConversion(texture_id, display_handle, context_handle);
     }
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_myapplication_MainActivity_convertToRGBOCL(JNIEnv *env, jclass clazz, jbyteArray yuv, jint width,
-                                                            jint height) {
+Java_com_example_myapplication_MainActivity_convertToRGBOCL(JNIEnv *env, jclass clazz,
+                                                            jbyteArray yuv, jint width,
+                                                            jint height, jint filter) {
     oclConv->src = env->GetByteArrayElements(yuv, 0);
-    if(!oclConv->initialized){
+    if (!oclConv->initialized) {
         int sizeSrc = env->GetArrayLength(yuv);
         oclConv->initialize(sizeSrc, width, height);
     }
@@ -50,8 +51,23 @@ Java_com_example_myapplication_MainActivity_convertToRGBOCL(JNIEnv *env, jclass 
             1,
             &oclConv->imageObj,
             0, 0, 0);
-    oclConv->srcBuffer->toDevice(oclConv->queue.get(),oclConv->src);
+    oclConv->srcBuffer->toDevice(oclConv->queue.get(), oclConv->src);
+    if(filter == 0){
+        oclConv->kernel->setArg<cl_mem>(0, &oclConv->imageObj);
+    }else{
+        oclConv->kernel->setArg<cl_mem>(0, &oclConv->imageTmp);
+    }
     oclConv->queue->runKernel(oclConv->kernel.get());
+    if(filter == 1){
+        oclConv->queue->runKernel(oclConv->kernelMaxRgb.get());
+    }else if (filter == 2){
+        oclConv->queue->runKernel(oclConv->kernelGrayScale.get());
+    }
     oclConv->queue->waitForExecutionFinish();
+    status = clEnqueueReleaseGLObjects(
+            oclConv->queue->queue,
+            1,
+            &oclConv->imageObj,
+            0, NULL, NULL);
     env->ReleaseByteArrayElements(yuv, oclConv->src, 0);
 }
