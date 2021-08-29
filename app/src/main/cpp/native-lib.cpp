@@ -62,6 +62,8 @@ Java_com_example_myapplication_MainActivity_convertToRGBOCL(JNIEnv *env, jclass 
         oclConv->queue->runKernel(oclConv->kernelMaxRgb.get());
     }else if (filter == 2){
         oclConv->queue->runKernel(oclConv->kernelGrayScale.get());
+    } else if (filter== 3 ){
+        oclConv->queue->runKernel(oclConv->kernelAvg.get());
     }
     oclConv->queue->waitForExecutionFinish();
     status = clEnqueueReleaseGLObjects(

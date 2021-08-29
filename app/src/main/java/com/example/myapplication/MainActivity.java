@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceTexture.On
             @Override
             public void onClick(View v) {
                 clickFilter++;
-                clickFilter = (clickFilter) % 3;
+                clickFilter = (clickFilter) % 4;
             }
         });
     }

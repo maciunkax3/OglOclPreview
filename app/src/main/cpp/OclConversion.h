@@ -14,6 +14,7 @@ public:
     std::unique_ptr<OCL::Kernel> kernel;
     std::unique_ptr<OCL::Kernel> kernelGrayScale;
     std::unique_ptr<OCL::Kernel> kernelMaxRgb;
+    std::unique_ptr<OCL::Kernel> kernelAvg;
     jbyte *dst;
     jbyte *src;
     std::unique_ptr<OCL::Buffer> dstBuffer;

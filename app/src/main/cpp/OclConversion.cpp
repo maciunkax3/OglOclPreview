@@ -39,10 +39,6 @@ __kernel void convertNV21ToRGBImage(__write_only image2d_t img , __global char *
     } else if (B > 255){
         B = 255;
     }
-
-    if((R > 0 && R <125) && (G > 125 && G <255) && (B > 0 && B <125)){
-        R = 0; G = 0; B = 0;
-    }
     write_imagef(img, (int2)(gidX, gidY), (float4)(((float)(R)/ (float)(255)), ((float)(G)/ (float)(255)), ((float)(B)/ (float)(255)), 1.0));
     //write_imagef(img, (int2)(gidX, gidY), (float4)(0.1, 0.2, 0.3, 0.4));
 
@@ -95,22 +91,21 @@ __kernel void imageRgbMax(__write_only image2d_t dst ,__read_only image2d_t src)
     int gidY = get_global_id(1);
     const int2 coord = (int2)(gidX, gidY);
     const float4 pixel = read_imagef(src, coord);
+
     float max = pixel.x;
     if(max < pixel.y){
-        pixel.x = 0;
         max = pixel.y;
-        if(max < pixel.z){
-            pixel.y = 0.0;
-            write_imagef(dst, coord, pixel);
-            return;
-        }
-    } else if(max < pixel.z){
-        pixel.y = 0.0;
-        pixel.x = 0.0;
-    } else {
-        pixel.y = 0.0;
-        pixel.z = 0.0;
     }
+    if(max < pixel.z){
+        max = pixel.z;
+    }
+
+    if(pixel.x < max)
+        pixel.x = 0.0;
+    if(pixel.y < max)
+        pixel.y = 0.0;
+    if(pixel.z < max)
+        pixel.z = 0.0;
     write_imagef(dst, coord, pixel);
 }
 )===";
@@ -122,6 +117,25 @@ __kernel void blackWhite(__write_only image2d_t dst ,__read_only image2d_t src){
     const float4 pixel = read_imagef(src, coord);
     float value = (pixel.x + pixel.y + pixel.z) / 3;
     write_imagef(dst, coord, (float4)(value, value, value, 1.0));
+}
+)===";
+const char *avgFilter = R"===(
+__kernel void avgFilter(__write_only image2d_t dst ,__read_only image2d_t src){
+    int gidX = get_global_id(0);
+    int gidY = get_global_id(1);
+    int width = get_image_width(src);
+    int height = get_image_height(src);
+    float4 value = (float4)(0.0, 0.0, 0.0, 0.0);
+    for (int i = -2; i< 3;i++) {
+        for(int j = -2;j < 3; j++){
+            if(gidX + j < 0 || gidX + j > width)
+                continue;
+            if(gidY + i < 0 || gidY + i > height)
+                continue;
+            value += read_imagef(src, (int2)(gidX + j, gidY + i));
+        }
+    }
+    write_imagef(dst, (int2)(gidX, gidY), (float4)(value.x/25, value.y/25, value.z/25, 1.0));
 }
 )===";
 
@@ -151,6 +165,9 @@ OclConversion::OclConversion(jint texture_id, jlong dis, jlong ctx) {
     kernelMaxRgb = std::make_unique<OCL::Kernel>(runtime->context.get(), rgbMax,
                                            "imageRgbMax",
                                           nullptr);
+    kernelAvg = std::make_unique<OCL::Kernel>(runtime->context.get(), avgFilter,
+                                                 "avgFilter",
+                                                 nullptr);
     size_t width = 0;
     size_t height = 0;
     clGetImageInfo(
@@ -198,6 +215,8 @@ void OclConversion::initialize(size_t sizeSrc, int width, int height) {
     kernelGrayScale->setArg<cl_mem>(1, &imageTmp);
     kernelMaxRgb->setArg<cl_mem>(0, &imageObj);
     kernelMaxRgb->setArg<cl_mem>(1, &imageTmp);
+    kernelAvg->setArg<cl_mem>(0, &imageObj);
+    kernelAvg->setArg<cl_mem>(1, &imageTmp);
     kernel->gws[0] = width;
     kernel->gws[1] = height;
     kernel->lws[0] = runtime->maxWG;
@@ -214,5 +233,11 @@ void OclConversion::initialize(size_t sizeSrc, int width, int height) {
     kernelMaxRgb->gws[1] = height;
     kernelMaxRgb->lws[0] = runtime->maxWG;
     kernelMaxRgb->dims = 2;
+
+
+    kernelAvg->gws[0] = width;
+    kernelAvg->gws[1] = height;
+    kernelAvg->lws[0] = runtime->maxWG;
+    kernelAvg->dims = 2;
     initialized = true;
 }
