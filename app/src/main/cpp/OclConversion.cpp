@@ -160,14 +160,14 @@ OclConversion::OclConversion(jint texture_id, jlong dis, jlong ctx) {
                                            "convertNV21ToRGBImage",
                                            nullptr);
     kernelGrayScale = std::make_unique<OCL::Kernel>(runtime->context.get(), blackWhite,
-                                                                                               "blackWhite",
-                                                                                               nullptr);
+                                                    "blackWhite",
+                                                    nullptr);
     kernelMaxRgb = std::make_unique<OCL::Kernel>(runtime->context.get(), rgbMax,
-                                           "imageRgbMax",
-                                          nullptr);
-    kernelAvg = std::make_unique<OCL::Kernel>(runtime->context.get(), avgFilter,
-                                                 "avgFilter",
+                                                 "imageRgbMax",
                                                  nullptr);
+    kernelAvg = std::make_unique<OCL::Kernel>(runtime->context.get(), avgFilter,
+                                              "avgFilter",
+                                              nullptr);
     size_t width = 0;
     size_t height = 0;
     clGetImageInfo(
@@ -201,7 +201,8 @@ OclConversion::OclConversion(jint texture_id, jlong dis, jlong ctx) {
     clImageDesc.num_samples = 0;
     clImageDesc.buffer = NULL;
 
-    imageTmp = clCreateImage(runtime->context->context, CL_MEM_READ_WRITE,&clImageFormat, &clImageDesc, nullptr, &status);
+    imageTmp = clCreateImage(runtime->context->context, CL_MEM_READ_WRITE, &clImageFormat,
+                             &clImageDesc, nullptr, &status);
 }
 
 void OclConversion::initialize(size_t sizeSrc, int width, int height) {
@@ -227,21 +228,21 @@ void OclConversion::initialize(size_t sizeSrc, int width, int height) {
 
     kernelGrayScale->gws[0] = width;
     kernelGrayScale->gws[1] = height;
-    kernelGrayScale->lws[0] = kernelGrayScale->maxWG;
+    kernelGrayScale->lws[0] = kernelGrayScale->maxWG >> shift;
     kernelGrayScale->lws[1] = 1 << shift;
     kernelGrayScale->dims = 2;
 
 
     kernelMaxRgb->gws[0] = width;
     kernelMaxRgb->gws[1] = height;
-    kernelMaxRgb->lws[0] = kernelMaxRgb->maxWG;
+    kernelMaxRgb->lws[0] = kernelMaxRgb->maxWG >> shift;
     kernelMaxRgb->lws[1] = 1 << shift;
     kernelMaxRgb->dims = 2;
 
 
     kernelAvg->gws[0] = width;
     kernelAvg->gws[1] = height;
-    kernelAvg->lws[0] = kernelMaxRgb->maxWG;
+    kernelAvg->lws[0] = kernelMaxRgb->maxWG >> shift;
     kernelAvg->lws[1] = 1 << shift;
     kernelAvg->dims = 2;
     initialized = true;

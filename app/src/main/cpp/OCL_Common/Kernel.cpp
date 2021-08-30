@@ -18,7 +18,6 @@ namespace OCL{
         LOGI("ref of clCreateKernel:%d\n",err);
         clGetKernelWorkGroupInfo(kernel, 0, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &maxWG, nullptr);
         LOGI("ref of clCreateKernel:%d\n",err);
-        maxWG =1;
 
     }
 
