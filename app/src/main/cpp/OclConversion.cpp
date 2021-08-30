@@ -205,6 +205,7 @@ OclConversion::OclConversion(jint texture_id, jlong dis, jlong ctx) {
 }
 
 void OclConversion::initialize(size_t sizeSrc, int width, int height) {
+    int shift = 5;
     srcBuffer = std::make_unique<OCL::Buffer>(runtime->context.get(), sizeSrc, nullptr);
     srcBuffer->toDevice(queue.get(), src);
     kernel->setArg<cl_mem>(0, &imageObj);
@@ -219,25 +220,29 @@ void OclConversion::initialize(size_t sizeSrc, int width, int height) {
     kernelAvg->setArg<cl_mem>(1, &imageTmp);
     kernel->gws[0] = width;
     kernel->gws[1] = height;
-    kernel->lws[0] = runtime->maxWG;
+    kernel->lws[0] = runtime->maxWG >> shift;
+    kernel->lws[1] = 1 << shift;
     kernel->dims = 2;
 
 
     kernelGrayScale->gws[0] = width;
     kernelGrayScale->gws[1] = height;
     kernelGrayScale->lws[0] = kernelGrayScale->maxWG;
+    kernelGrayScale->lws[1] = 1 << shift;
     kernelGrayScale->dims = 2;
 
 
     kernelMaxRgb->gws[0] = width;
     kernelMaxRgb->gws[1] = height;
     kernelMaxRgb->lws[0] = kernelMaxRgb->maxWG;
+    kernelMaxRgb->lws[1] = 1 << shift;
     kernelMaxRgb->dims = 2;
 
 
     kernelAvg->gws[0] = width;
     kernelAvg->gws[1] = height;
-    kernelAvg->lws[0] = kernelAvg->maxWG;
+    kernelAvg->lws[0] = kernelMaxRgb->maxWG;
+    kernelAvg->lws[1] = 1 << shift;
     kernelAvg->dims = 2;
     initialized = true;
 }
