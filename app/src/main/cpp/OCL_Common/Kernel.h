@@ -20,5 +20,6 @@ namespace OCL{
         size_t gws[3]={1,1,1};
         size_t lws[3]={1,1,1};
         cl_uint dims = 1;
+        size_t maxWG = 0;
     };
 }

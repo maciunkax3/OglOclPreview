@@ -225,19 +225,19 @@ void OclConversion::initialize(size_t sizeSrc, int width, int height) {
 
     kernelGrayScale->gws[0] = width;
     kernelGrayScale->gws[1] = height;
-    kernelGrayScale->lws[0] = runtime->maxWG;
+    kernelGrayScale->lws[0] = kernelGrayScale->maxWG;
     kernelGrayScale->dims = 2;
 
 
     kernelMaxRgb->gws[0] = width;
     kernelMaxRgb->gws[1] = height;
-    kernelMaxRgb->lws[0] = runtime->maxWG;
+    kernelMaxRgb->lws[0] = kernelMaxRgb->maxWG;
     kernelMaxRgb->dims = 2;
 
 
     kernelAvg->gws[0] = width;
     kernelAvg->gws[1] = height;
-    kernelAvg->lws[0] = runtime->maxWG;
+    kernelAvg->lws[0] = kernelAvg->maxWG;
     kernelAvg->dims = 2;
     initialized = true;
 }
