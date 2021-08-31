@@ -1,7 +1,11 @@
 package com.example.myapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
@@ -15,6 +19,8 @@ import com.example.myapplication.databinding.ActivityMainBinding;
 import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity implements SurfaceTexture.OnFrameAvailableListener {
+    private static final int PERMISSION_REQUEST_CODE = 200;
+
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("native-lib");
@@ -44,10 +50,11 @@ public class MainActivity extends AppCompatActivity implements SurfaceTexture.On
             public void onClick(View v) {
                 clickFilter++;
                 clickFilter = (clickFilter) % 4;
+                renderer.resetFpsCounter();
             }
         });
-    }
 
+    }
     public void startCamera(byte[] tex_data, int mainTexId) throws IOException {
         texture_data = tex_data;
         dummySurface = new SurfaceTexture(dummyTexture);

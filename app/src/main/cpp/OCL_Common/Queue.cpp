@@ -16,7 +16,7 @@ namespace OCL{
     }
 
     void Queue::runKernel(Kernel *kernel) {
-        clEnqueueNDRangeKernel(queue, kernel->kernel, kernel->dims, NULL, kernel->gws, kernel->lws, 0, nullptr, kernel->event ? &kernel->event :nullptr);
+        clEnqueueNDRangeKernel(queue, kernel->kernel, kernel->dims, NULL, kernel->gws, kernel->lws/* nullptr*/, 0, nullptr, kernel->event ? &kernel->event :nullptr);
     }
 
     void Queue::flushKernels() {

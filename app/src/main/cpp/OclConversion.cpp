@@ -206,7 +206,7 @@ OclConversion::OclConversion(jint texture_id, jlong dis, jlong ctx) {
 }
 
 void OclConversion::initialize(size_t sizeSrc, int width, int height) {
-    int shift = 5;
+    int shift = 0;
     srcBuffer = std::make_unique<OCL::Buffer>(runtime->context.get(), sizeSrc, nullptr);
     srcBuffer->toDevice(queue.get(), src);
     kernel->setArg<cl_mem>(0, &imageObj);

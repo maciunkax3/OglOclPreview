@@ -32,7 +32,9 @@ public class MyGL20Renderer implements GLSurfaceView.Renderer {
     public MyGL20Renderer(MainActivity _delegate) {
         delegate = _delegate;
     }
-
+    public void resetFpsCounter(){
+        counter = new FPSCounter();
+    }
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
         size = delegate.getOpenCameraAndGetResolution();
 
