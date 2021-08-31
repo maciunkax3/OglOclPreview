@@ -73,8 +73,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceTexture.On
 
     public Point getOpenCameraAndGetResolution() {
         mCamera = Camera.open();
-        //return new Point(mCamera.getParameters().getPictureSize().width,mCamera.getParameters().getPictureSize().height);
-        return new Point(2048, 1080);
+        return new Point(mCamera.getParameters().getPreviewSize().width,mCamera.getParameters().getPreviewSize().height);
+        //return new Point(2048, 1080);
     }
     public static void yuv2rgb(byte[] rgba, byte[] yuv, int width, int height) {
         int total = width * height;
