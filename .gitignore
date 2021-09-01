@@ -13,3 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+app/build
+app/src/main/cpp/libopencl-stub
